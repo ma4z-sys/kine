@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════╗
+# ║                    KINE - APK Launcher                    ║
+# ║         Run Android apps natively on Linux                ║
+# ╚═══════════════════════════════════════════════════════════╝
+
+set -euo pipefail
+
+KINE_VERSION="1.0.0"
+KINE_HOME="${HOME}/.kine"
+KINE_LIB="$(dirname "$(realpath "$0")")/../lib"
+
+# Load core libraries
+source "${KINE_LIB}/logging.sh"
+source "${KINE_LIB}/display.sh"
+source "${KINE_LIB}/runtime.sh"
+source "${KINE_LIB}/apk.sh"
+source "${KINE_LIB}/deps.sh"
+
+# ─── Usage ──────────────────────────────────────────────────
+usage() {
+    cat <<EOF
+
+  ██╗  ██╗██╗███╗   ██╗███████╗
+  ██║ ██╔╝██║████╗  ██║██╔════╝
+  █████╔╝ ██║██╔██╗ ██║█████╗
+  ██╔═██╗ ██║██║╚██╗██║██╔══╝
+  ██║  ██╗██║██║ ╚████║███████╗
+  ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝  v${KINE_VERSION}
+
+  Android APK Launcher for Linux
+
+  USAGE:
+    kine <command> [options]
+
+  COMMANDS:
+    init   <model>      Initialize Android runtime (e.g. "pixel5")
+    launch <app.apk>    Install & launch an APK in a native window
+    install <app.apk>   Install an APK without launching
+    stop                Stop the Android runtime
+    status              Show runtime and session status
+    logs                Tail kine runtime logs
+    help                Show this help message
+
+  EXAMPLES:
+    kine init pixel5
+    kine launch ~/Downloads/myapp.apk
+    kine install ~/Downloads/myapp.apk
+    kine stop
+    kine status
+
+  DIRECTORIES:
+    Runtime data:  ~/.kine/runtime/
+    Installed apps: ~/.kine/apps/
+    Cache:         ~/.kine/cache/
+    Logs:          ~/.kine/logs/
+    Config:        ~/.kine/config/
+
+EOF
+}
+
+# ─── Main Dispatcher ─────────────────────────────────────────
+main() {
+    if [[ $# -eq 0 ]]; then
+        usage
+        exit 0
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        init)
+            local model="${1:-}"
+            if [[ -z "$model" ]]; then
+                kine_error "Usage: kine init <androidModel>"
+                kine_info  "Example: kine init pixel5"
+                exit 1
+            fi
+            cmd_init "$model"
+            ;;
+        launch)
+            local apk="${1:-}"
+            if [[ -z "$apk" ]]; then
+                kine_error "Usage: kine launch <app.apk>"
+                exit 1
+            fi
+            cmd_launch "$apk"
+            ;;
+        install)
+            local apk="${1:-}"
+            if [[ -z "$apk" ]]; then
+                kine_error "Usage: kine install <app.apk>"
+                exit 1
+            fi
+            cmd_install "$apk"
+            ;;
+        stop)
+            cmd_stop
+            ;;
+        status)
+            cmd_status
+            ;;
+        logs)
+            cmd_logs
+            ;;
+        help|--help|-h)
+            usage
+            ;;
+        *)
+            kine_error "Unknown command: '$cmd'"
+            kine_info  "Run 'kine help' for available commands"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
