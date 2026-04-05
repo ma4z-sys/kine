@@ -30,3 +30,8 @@ kine launch spookygooning.apk
 
 - App compatibility may vary
 - Performance depends on your system
+
+# Conclusion
+kine uses waydroid to run .apk files .. why not just use waydroid straight way?
+
+kine helps to config file for gnome or x11 or other shit. it verifies files just how elon verifies that rocket works
